@@ -37,7 +37,7 @@ const { fieldType, iconSrc, iconAlt, placeholder} = props;
       return (
         <div className="flex rounded-md border border-dark-500 bg-dark-400">
           {iconSrc && (
-            
+            <></>
           )} <FormControl>
             <Input 
             placeholder={placeholder}
