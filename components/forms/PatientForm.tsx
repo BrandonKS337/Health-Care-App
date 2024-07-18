@@ -3,9 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import CustomFormField from "../ui/CustomFormField";
 import { Form } from "../ui/form";
+import SubmitButton from "../ui/SubmitButton";
+import { useState } from "react";
+import { UserFormValidation } from "@/lib/validation";
+import { useRouter } from "next/navigation";
+// import {isLoading}
 
 export enum FormFieldType { //enums in TS allow you to define a set of named constants. Makes easier to document intent.
   INPUT = "input",
@@ -17,28 +22,38 @@ export enum FormFieldType { //enums in TS allow you to define a set of named con
   SKELETON = " skeleton",
 }
 
-const formSchema = z.object({
-  username: z.string().min(2, {
-    //sets validation for username so that users receive error if trying to enter anything less than 2 characters
-    message: "Username must be at least 2 characters.", //this being set is the error message if .min param is not met
-  }),
-});
-
 const PatientForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+
   // 1. Define your form.
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<z.infer<typeof UserFormValidation>>({
     //This is being passed to the CustomFormField
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(UserFormValidation),
     defaultValues: {
-      username: "",
+      name: "",
+      email: "",
+      phone: "",
     },
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  function onSubmit({
+    name,
+    email,
+    phone,
+  }: z.infer<typeof UserFormValidation>) {
+    setIsLoading(true);
+
+    try {
+      // const userData = { name, email, phone };
+
+      // const user = await createUser(userData)
+
+      // if(user) router.push('/patients/${user.$id}/register')
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
@@ -77,7 +92,7 @@ const PatientForm = () => {
           placeholder="(555) 123-4567"
         />
 
-        <Button type="submit">Submit</Button>
+        <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
       </form>
     </Form>
   );
