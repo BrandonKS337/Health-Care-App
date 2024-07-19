@@ -10,6 +10,7 @@ import SubmitButton from "../ui/SubmitButton";
 import { useState } from "react";
 import { UserFormValidation } from "@/lib/validation";
 import { useRouter } from "next/navigation";
+import { createUser } from "@/lib/actions/patient.actions";
 // import {isLoading}
 
 export enum FormFieldType { //enums in TS allow you to define a set of named constants. Makes easier to document intent.
@@ -38,7 +39,7 @@ const PatientForm = () => {
   });
 
   // 2. Define a submit handler.
-  function onSubmit({
+  async function onSubmit({
     name,
     email,
     phone,
@@ -46,11 +47,11 @@ const PatientForm = () => {
     setIsLoading(true);
 
     try {
-      // const userData = { name, email, phone };
+      const userData = { name, email, phone };
 
-      // const user = await createUser(userData)
+      const user = await createUser(userData)
 
-      // if(user) router.push('/patients/${user.$id}/register')
+      if(user) router.push(`/patients/${user.$id}/register`)
     } catch (error) {
       console.log(error);
     }
