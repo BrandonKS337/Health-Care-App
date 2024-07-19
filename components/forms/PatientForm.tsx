@@ -1,35 +1,24 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-// import { Button } from "@/components/ui/button";
-import CustomFormField from "../ui/CustomFormField";
-import { Form } from "../ui/form";
-import SubmitButton from "../ui/SubmitButton";
-import { useState } from "react";
-import { UserFormValidation } from "@/lib/validation";
-import { useRouter } from "next/navigation";
+
+import { Form } from "@/components/ui/form";
 import { createUser } from "@/lib/actions/patient.actions";
-// import {isLoading}
+import { UserFormValidation } from "@/lib/validation";
 
-export enum FormFieldType { //enums in TS allow you to define a set of named constants. Makes easier to document intent.
-  INPUT = "input",
-  TEXTAREA = "textarea",
-  PHONE_INPUT = "phoneInput",
-  CHECKBOX = "checkbox",
-  DATE_PICKER = "datePicker",
-  Select = "select",
-  SKELETON = " skeleton",
-}
+import "react-phone-number-input/style.css";
+import CustomFormField, { FormFieldType } from "../CustomFormField";
+import SubmitButton from "../SubmitButton";
 
-const PatientForm = () => {
+export const PatientForm = () => {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter()
 
-  // 1. Define your form.
   const form = useForm<z.infer<typeof UserFormValidation>>({
-    //This is being passed to the CustomFormField
     resolver: zodResolver(UserFormValidation),
     defaultValues: {
       name: "",
@@ -38,31 +27,36 @@ const PatientForm = () => {
     },
   });
 
-  // 2. Define a submit handler.
-  async function onSubmit({
-    name,
-    email,
-    phone,
-  }: z.infer<typeof UserFormValidation>) {
+  const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
     setIsLoading(true);
+    console.log('button Clicked')
 
     try {
-      const userData = { name, email, phone };
+      const user = {
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+      };
+      console.log(user)
 
-      const user = await createUser(userData)
+      const newUser = await createUser(user);
 
-      if(user) router.push(`/patients/${user.$id}/register`)
+      if (newUser) {
+        router.push(`/patients/${newUser.$id}/register`);
+      }
     } catch (error) {
       console.log(error);
     }
-  }
+
+    setIsLoading(false);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 flex-1">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 space-y-6">
         <section className="mb-12 space-y-4">
           <h1 className="header">Hi there 👋</h1>
-          <p className="text-dark-[700]">Schedule your first appointment</p>
+          <p className="text-dark-700">Get started with appointments.</p>
         </section>
 
         <CustomFormField
@@ -70,7 +64,7 @@ const PatientForm = () => {
           control={form.control}
           name="name"
           label="Full name"
-          placeholder="JohnDoe"
+          placeholder="John Doe"
           iconSrc="/assets/icons/user.svg"
           iconAlt="user"
         />
@@ -80,7 +74,7 @@ const PatientForm = () => {
           control={form.control}
           name="email"
           label="Email"
-          placeholder="JohnDoe@email.com"
+          placeholder="johndoe@gmail.com"
           iconSrc="/assets/icons/email.svg"
           iconAlt="email"
         />
@@ -98,5 +92,3 @@ const PatientForm = () => {
     </Form>
   );
 };
-
-export default PatientForm;
