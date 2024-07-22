@@ -1,24 +1,23 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Form } from "@/components/ui/form";
-// import { createUser } from "@/lib/actions/patient.actions";
+import { SelectItem } from "@/components/ui/select";
+import { Doctors } from "@/constants";
 import { getAppointmentSchema } from "@/lib/validation";
+import { Appointment } from "@/types/appwrite.types";
 
-import "react-phone-number-input/style.css";
+import "react-datepicker/dist/react-datepicker.css";
+
 import CustomFormField, { FormFieldType } from "../CustomFormField";
 import SubmitButton from "../SubmitButton";
-import { Doctors } from "@/constants";
-import { SelectItem } from "../ui/select";
-import Image from "next/image";
-// import { scheduler } from "timers/promises";
+import { Form } from "../ui/form";
 import { createAppointment, updateAppointment } from "@/lib/actions/appointement.actions";
-import { Appointment } from "@/types/appwrite.types";
 
 export const AppointmentForm = ({
   userId,
@@ -70,7 +69,7 @@ export const AppointmentForm = ({
 
     try {
       if (type === "create" && patientId) {
-        const appointmentData = {
+        const appointment = {
           userId,
           patient: patientId,
           primaryPhysician: values.primaryPhysician,
@@ -80,12 +79,12 @@ export const AppointmentForm = ({
           note: values.note,
         };
 
-        const appointment = await createAppointment(appointmentData);
+        const newAppointment = await createAppointment(appointment);
 
-        if (appointment) {
+        if (newAppointment) {
           form.reset();
           router.push(
-            `/patients/${userId}/new-appointment/success?appointmentId=${appointment.$id}`
+            `/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`
           );
         }
       } else {
@@ -100,10 +99,11 @@ export const AppointmentForm = ({
           },
           type,
         };
-        const updatedAppointment = await updateAppointment(appointmentToUpdate)
 
-        if(updatedAppointment) {
-          setOpen && setOpen(false)
+        const updatedAppointment = await updateAppointment(appointmentToUpdate);
+
+        if (updatedAppointment) {
+          setOpen && setOpen(false);
           form.reset();
         }
       }
@@ -122,7 +122,7 @@ export const AppointmentForm = ({
       buttonLabel = "Schedule Appointment";
       break;
     default:
-      buttonLabel = "Submit Appointment";
+      buttonLabel = "Submit Apppointment";
   }
 
   return (

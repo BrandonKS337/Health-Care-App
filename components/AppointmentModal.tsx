@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +11,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "./ui/button";
-import { AppointmentForm } from "./forms/AppointmentForm";
 import { Appointment } from "@/types/appwrite.types";
+
+import { AppointmentForm } from "./forms/AppointmentForm";
 
 const AppointmentModal = ({
   type,
@@ -21,9 +22,11 @@ const AppointmentModal = ({
   appointment,
 }: {
   type: "schedule" | "cancel";
-  patientId: string,
+  patientId: string;
   userId: string;
-  appointment?: Appointment
+  appointment?: Appointment;
+  title: string;
+  description: string;
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -45,12 +48,12 @@ const AppointmentModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <AppointmentForm 
-         userId={userId}
-         patientId={patientId}
-         type={type}
-         appointment={appointment}
-         setOpen={setOpen}
+        <AppointmentForm
+          userId={userId}
+          patientId={patientId}
+          type={type}
+          appointment={appointment}
+          setOpen={setOpen}
         />
       </DialogContent>
     </Dialog>
