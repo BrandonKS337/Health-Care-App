@@ -1,5 +1,5 @@
 import StatCard from "@/components/StatCard";
-import {columns, Payment} from "@/components/table/columns";
+import {columns} from "@/components/table/columns";
 import {DataTable} from "@/components/table/DataTable";
 import { getRecentAppointmentList } from "@/lib/actions/appointement.actions";
 import Image from "next/image";
