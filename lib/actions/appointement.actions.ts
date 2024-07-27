@@ -32,6 +32,24 @@ export const createAppointment = async (
   }
 };
 
+// GET APPOINTMENT
+export const getAppointment = async (appointmentId: string) => {
+  try {
+    const appointment = await databases.getDocument(
+      DATABASE_ID!,
+      APPOINTMENT_COLLECTION_ID!,
+      appointmentId
+    );
+
+    return parseStringify(appointment);
+  } catch (error) {
+    console.error(
+      "An error occurred while retrieving the existing patient:",
+      error
+    );
+  }
+};
+
 //  GET RECENT APPOINTMENTS
 export const getRecentAppointmentList = async () => {
   try {
@@ -134,30 +152,17 @@ export const updateAppointment = async ({
 
     if (!updatedAppointment) throw Error;
 
-    // const smsMessage = `Greetings from CarePulse. ${type === "schedule" ? `Your appointment is confirmed for ${formatDateTime(appointment.schedule!).dateTime} with Dr. ${appointment.primaryPhysician}` : `We regret to inform that your appointment for ${formatDateTime(appointment.schedule!).dateTime} is cancelled. Reason:  ${appointment.cancellationReason}`}.`;
-    // await sendSMSNotification(userId, smsMessage);
+    const smsMessage = `Hey there, it's CarePulse. ${
+      type === "schedule"
+        ? `Your appointment is confirmed for ${formatDateTime(appointment.schedule!).dateTime} with Dr. ${appointment.primaryPhysician}`
+        : `We regret to inform that your appointment for ${formatDateTime(appointment.schedule!).dateTime} is cancelled. Reason:  ${appointment.cancellationReason}`
+    }.`;
+
+    await sendSMSNotification(userId, smsMessage);
 
     revalidatePath("/admin");
     return parseStringify(updatedAppointment);
   } catch (error) {
     console.error("An error occurred while scheduling an appointment:", error);
-  }
-};
-
-// GET APPOINTMENT
-export const getAppointment = async (appointmentId: string) => {
-  try {
-    const appointment = await databases.getDocument(
-      DATABASE_ID!,
-      APPOINTMENT_COLLECTION_ID!,
-      appointmentId
-    );
-
-    return parseStringify(appointment);
-  } catch (error) {
-    console.error(
-      "An error occurred while retrieving the existing patient:",
-      error
-    );
   }
 };
