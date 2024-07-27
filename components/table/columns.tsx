@@ -75,7 +75,6 @@ export const columns: ColumnDef<Appointment>[] = [
     header: () => <div className="pl-4">Actions</div>,
     cell: ({ row }) => {
       const appointment = row.original;
-
       return (
         <div className="flex gap-1">
           <AppointmentModal
