@@ -1,7 +1,6 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-
 import { Button } from "../ui/button";
 import StatusBadge from "../StatusBadge";
 import { formatDateTime } from "@/lib/utils";
@@ -11,10 +10,7 @@ import { MoreHorizontal } from "lucide-react";
 import AppointmentModal from "../AppointmentModal";
 import { Appointment } from "@/types/appwrite.types";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-
-
+// Define columns for the table
 export const columns: ColumnDef<Appointment>[] = [
   {
     header: "ID",
@@ -24,7 +20,9 @@ export const columns: ColumnDef<Appointment>[] = [
     accessorKey: "patient",
     header: "Patient",
     cell: ({ row }) => {
-      return <p className="text-14-medium">{row.original.patient.name}</p>;
+      // Safely handle null or undefined patient data
+      const patientName = row.original.patient?.name || "Unknown Patient";
+      return <p className="text-14-medium">{patientName}</p>;
     },
   },
   {
@@ -50,7 +48,6 @@ export const columns: ColumnDef<Appointment>[] = [
     header: "Doctor",
     cell: ({ row }) => {
       const appointment = row.original;
-
       const doctor = Doctors.find(
         (doctor) => doctor.name === appointment.primaryPhysician
       );
@@ -64,12 +61,11 @@ export const columns: ColumnDef<Appointment>[] = [
             height={100}
             className="size-8"
           />
-          <p className="whitespace-nowrap">Dr. {doctor?.name}</p>
+          <p className="whitespace-nowrap">Dr. {doctor?.name || "Unknown Doctor"}</p>
         </div>
       );
     },
   },
-
   {
     id: "actions",
     header: () => <div className="pl-4">Actions</div>,
@@ -78,7 +74,7 @@ export const columns: ColumnDef<Appointment>[] = [
       return (
         <div className="flex gap-1">
           <AppointmentModal
-            patientId={appointment.patient.$id}
+            patientId={appointment.patient?.$id || ""}
             userId={appointment.userId}
             appointment={appointment}
             type="schedule"
@@ -86,7 +82,7 @@ export const columns: ColumnDef<Appointment>[] = [
             description="Please confirm the following details to schedule."
           />
           <AppointmentModal
-            patientId={appointment.patient.$id}
+            patientId={appointment.patient?.$id || ""}
             userId={appointment.userId}
             appointment={appointment}
             type="cancel"
