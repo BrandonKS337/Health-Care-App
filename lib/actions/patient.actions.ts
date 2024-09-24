@@ -17,8 +17,16 @@ import { parseStringify } from "../utils";
 // CREATE APPWRITE USER
 export const createUser = async (user: CreateUserParams) => {
   try {
-    // Create new user -> https://appwrite.io/docs/references/1.5.x/server-nodejs/users#create
-    const newuser = await users.create(
+    // Check if the user already exists
+    const existingUsers = await users.list([Query.equal("email", user.email)]);
+
+    if (existingUsers.total > 0) {
+      // User already exists, return the existing user and mark as existing
+      return { ...existingUsers.users[0], isExistingUser: true };
+    }
+
+    // If the user doesn't exist, create a new one
+    const newUser = await users.create(
       ID.unique(),
       user.email,
       user.phone,
@@ -26,17 +34,10 @@ export const createUser = async (user: CreateUserParams) => {
       user.name
     );
 
-    return parseStringify(newuser);
-  } catch (error: any) {
-    // Check existing user
-    if (error && error?.code === 409) {
-      const existingUser = await users.list([
-        Query.equal("email", [user.email]),
-      ]);
-
-      return existingUser.users[0];
-    }
-    console.error("An error occurred while creating a new user:", error);
+    return { ...newUser, isExistingUser: false };
+  } catch (error) {
+    console.error("Error during user creation:", error);
+    throw error;
   }
 };
 
@@ -110,5 +111,3 @@ export const getPatient = async (userId: string) => {
     );
   }
 };
-
-

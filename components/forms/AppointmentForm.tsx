@@ -18,6 +18,7 @@ import CustomFormField, { FormFieldType } from "../CustomFormField";
 import SubmitButton from "../SubmitButton";
 import { Form } from "../ui/form";
 import { createAppointment, updateAppointment } from "@/lib/actions/appointement.actions";
+import { createUser } from "@/lib/actions/patient.actions";
 
 export const AppointmentForm = ({
   userId,
@@ -35,81 +36,79 @@ export const AppointmentForm = ({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Get the appropriate validation schema based on the appointment type
   const AppointmentFormValidation = getAppointmentSchema(type);
 
   const form = useForm<z.infer<typeof AppointmentFormValidation>>({
     resolver: zodResolver(AppointmentFormValidation),
     defaultValues: {
       primaryPhysician: appointment ? appointment?.primaryPhysician : "",
-      schedule: appointment
-        ? new Date(appointment?.schedule!)
-        : new Date(Date.now()),
+      schedule: appointment ? new Date(appointment?.schedule!) : new Date(),
       reason: appointment ? appointment.reason : "",
       note: appointment?.note || "",
       cancellationReason: appointment?.cancellationReason || "",
     },
   });
 
-  const onSubmit = async (
-    values: z.infer<typeof AppointmentFormValidation>
-  ) => {
+  // Handle form submission
+  const onSubmit = async (values: z.infer<typeof AppointmentFormValidation>) => {
     setIsLoading(true);
-
-    let status;
-    switch (type) {
-      case "schedule":
-        status = "scheduled";
-        break;
-      case "cancel":
-        status = "cancelled";
-        break;
-      default:
-        status = "pending";
-    }
 
     try {
       if (type === "create" && patientId) {
-        const appointment = {
+        const newAppointment = await createAppointment({
           userId,
           patient: patientId,
           primaryPhysician: values.primaryPhysician,
           schedule: new Date(values.schedule),
           reason: values.reason!,
-          status: status as Status,
+          status: "pending", // Assuming pending for newly created appointments
           note: values.note,
-        };
-
-        const newAppointment = await createAppointment(appointment);
+        });
 
         if (newAppointment) {
-          form.reset();
-          router.push(
-            `/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`
-          );
+          router.push(`/patients/${userId}/new-appointment/success?appointmentId=${newAppointment.$id}`);
         }
-      } else {
-        const appointmentToUpdate = {
-          userId,
+      } else if (type === "cancel") {
+        const updatedAppointment = await updateAppointment({
           appointmentId: appointment?.$id!,
+          userId,
           appointment: {
             primaryPhysician: values.primaryPhysician,
             schedule: new Date(values.schedule),
-            status: status as Status,
+            status: "cancelled", // Set status to cancelled
             cancellationReason: values.cancellationReason,
           },
-          type,
-        };
-
-        const updatedAppointment = await updateAppointment(appointmentToUpdate);
+          type: "cancel",
+        });
 
         if (updatedAppointment) {
           setOpen && setOpen(false);
-          form.reset();
+          router.push(`/patients/${userId}/appointments`);
+        }
+      } else if (type === "schedule") {
+        const updatedAppointment = await updateAppointment({
+          appointmentId: appointment?.$id!,
+          userId,
+          appointment: {
+            primaryPhysician: values.primaryPhysician,
+            schedule: new Date(values.schedule),
+            status: "scheduled", // Set status to scheduled
+            reason: values.reason,
+            note: values.note,
+          },
+          type: "schedule",
+        });
+
+        if (updatedAppointment) {
+          setOpen && setOpen(false);
+          router.push(`/patients/${userId}/appointments`);
         }
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error during appointment creation or update:", error);
     }
+
     setIsLoading(false);
   };
 
@@ -131,9 +130,7 @@ export const AppointmentForm = ({
         {type === "create" && (
           <section className="mb-12 space-y-4">
             <h1 className="header">New Appointment</h1>
-            <p className="text-dark-700">
-              Request a new appointment in 10 seconds.
-            </p>
+            <p className="text-dark-700">Request a new appointment in 10 seconds.</p>
           </section>
         )}
 
@@ -171,16 +168,13 @@ export const AppointmentForm = ({
               dateFormat="MM/dd/yyyy  -  h:mm aa"
             />
 
-            <div
-              className={`flex flex-col gap-6  ${type === "create" && "xl:flex-row"}`}
-            >
+            <div className={`flex flex-col gap-6  ${type === "create" && "xl:flex-row"}`}>
               <CustomFormField
                 fieldType={FormFieldType.TEXTAREA}
                 control={form.control}
                 name="reason"
                 label="Appointment reason"
                 placeholder="Annual monthly check-up"
-                // disabled={type === "schedule"}
               />
 
               <CustomFormField
@@ -189,7 +183,6 @@ export const AppointmentForm = ({
                 name="note"
                 label="Comments/notes"
                 placeholder="Prefer afternoon appointments, if possible"
-                // disabled={type === "schedule"}
               />
             </div>
           </>
@@ -205,10 +198,7 @@ export const AppointmentForm = ({
           />
         )}
 
-        <SubmitButton
-          isLoading={isLoading}
-          className={`${type === "cancel" ? "shad-danger-btn" : "shad-primary-btn"} w-full`}
-        >
+        <SubmitButton isLoading={isLoading} className={`${type === "cancel" ? "shad-danger-btn" : "shad-primary-btn"} w-full`}>
           {buttonLabel}
         </SubmitButton>
       </form>

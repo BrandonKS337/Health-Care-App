@@ -29,7 +29,7 @@ export const PatientForm = () => {
 
   const onSubmit = async (values: z.infer<typeof UserFormValidation>) => {
     setIsLoading(true);
-    console.log('button Clicked')
+    console.log("button Clicked");
 
     try {
       const user = {
@@ -37,15 +37,20 @@ export const PatientForm = () => {
         email: values.email,
         phone: values.phone,
       };
-      console.log(user)
 
+      // Attempt to create or fetch the user
       const newUser = await createUser(user);
 
       if (newUser) {
-        router.push(`/patients/${newUser.$id}/register`);
+        // Check if user is new or already exists, then navigate accordingly
+        if (newUser.isExistingUser) {
+          router.push(`/patients/${newUser.$id}/new-appointment`);
+        } else {
+          router.push(`/patients/${newUser.$id}/register`);
+        }
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error during user creation or fetching:", error);
     }
 
     setIsLoading(false);
